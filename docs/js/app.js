@@ -19,6 +19,7 @@ import {
   where,
   deleteDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 import { SECTION_GROUPS, ALL_SECTIONS, normalizeSectionQuery } from "./sections-data.js";
 import { firebaseConfig, isFirebaseConfigured } from "./firebase-config.js";
 
@@ -885,6 +886,13 @@ async function bootFirebase() {
     state.app = initializeApp(firebaseConfig);
     state.auth = getAuth(state.app);
     state.db = getFirestore(state.app);
+    if (firebaseConfig.measurementId) {
+      isSupported()
+        .then((ok) => {
+          if (ok) getAnalytics(state.app);
+        })
+        .catch(() => {});
+    }
     state.firebaseReady = true;
     hideBanner();
   } catch (e) {
