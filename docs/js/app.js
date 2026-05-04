@@ -98,6 +98,7 @@ function initElements() {
   els.search = $("global-search");
   els.sectionGroupsRoot = $("section-groups-root");
   els.postsBySection = $("posts-by-section");
+  els.sectionPostsFallback = $("section-posts-fallback");
   els.sectionFilterLabel = $("section-filter-label");
   els.formPost = $("form-post");
   els.formForum = $("form-forum");
@@ -231,6 +232,35 @@ function sectionMatchesPost(section, post) {
   return blob.includes(s) || blob.includes(s.replace(/\s/g, ""));
 }
 
+/**
+ * Si no hay publicaciones que citen el sector elegido, busca en "anillos" de
+ * vecindad según el orden de ALL_SECTIONS (misma fila adyacente o salto a la
+ * siguiente grada en el listado, p. ej. 439 ↔ 500).
+ */
+function getClosestPostsFromNearby(posts, selectedSec) {
+  const exact = posts.filter((p) => sectionMatchesPost(selectedSec, p));
+  if (exact.length > 0) {
+    return { mode: "exact", posts: exact, ringSectors: [] };
+  }
+  const i = ALL_SECTIONS.indexOf(selectedSec);
+  if (i === -1) {
+    return { mode: "empty", posts: [], ringSectors: [] };
+  }
+  for (let d = 1; d < ALL_SECTIONS.length; d++) {
+    const ringSectors = [];
+    if (i - d >= 0) ringSectors.push(ALL_SECTIONS[i - d]);
+    if (i + d < ALL_SECTIONS.length) ringSectors.push(ALL_SECTIONS[i + d]);
+    if (ringSectors.length === 0) break;
+    const ringPosts = posts.filter((p) =>
+      ringSectors.some((s) => sectionMatchesPost(s, p))
+    );
+    if (ringPosts.length > 0) {
+      return { mode: "nearby", posts: ringPosts, ringSectors };
+    }
+  }
+  return { mode: "empty", posts: [], ringSectors: [] };
+}
+
 function renderSectionGroups() {
   if (!els.sectionGroupsRoot) return;
   els.sectionGroupsRoot.innerHTML = "";
@@ -333,12 +363,13 @@ function escapeAttr(s) {
   return escapeHtml(s).replace(/'/g, "&#39;");
 }
 
-function mountPosts(container, posts, filterFn, { showPm } = { showPm: true }) {
+function mountPostCards(container, list, { showPm = true, emptyHtml } = {}) {
   if (!container) return;
-  const list = posts.filter(filterFn).slice(0, 80);
+  const defaultEmpty =
+    '<p class="legal">Aún no hay publicaciones. Sé la primera en publicar (vista “Publicar”).</p>';
   container.innerHTML = list.length
     ? list.map((p) => postCardHtml(p, { showPm })).join("")
-    : '<p class="legal">Aún no hay publicaciones. Sé la primera en publicar (vista “Publicar”).</p>';
+    : emptyHtml || defaultEmpty;
   container.querySelectorAll(".pm-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const peer = btn.getAttribute("data-peer");
@@ -361,14 +392,48 @@ function mountPosts(container, posts, filterFn, { showPm } = { showPm: true }) {
   });
 }
 
+function mountPosts(container, posts, filterFn, options = {}) {
+  if (!container) return;
+  const list = posts.filter(filterFn).slice(0, 80);
+  mountPostCards(container, list, options);
+}
+
 function renderPostsLists() {
   const posts = state.posts;
   const sec = state.selectedSection;
-  const bySection = (p) => {
-    if (!sec) return true;
-    return sectionMatchesPost(sec, p);
-  };
-  mountPosts(els.postsBySection, posts, bySection);
+
+  const fb = els.sectionPostsFallback;
+  if (fb) {
+    fb.hidden = true;
+    fb.textContent = "";
+  }
+
+  if (els.postsBySection) {
+    if (!sec) {
+      mountPostCards(els.postsBySection, posts.slice(0, 80));
+    } else {
+      const r = getClosestPostsFromNearby(posts, sec);
+      if (r.mode === "exact") {
+        mountPostCards(els.postsBySection, r.posts.slice(0, 80));
+      } else if (r.mode === "nearby") {
+        const used = r.ringSectors.filter((s) =>
+          r.posts.some((p) => sectionMatchesPost(s, p))
+        );
+        const label = used.length ? used.join(", ") : r.ringSectors.join(", ");
+        if (fb) {
+          fb.hidden = false;
+          fb.textContent = `No hay publicaciones que mencionen el sector ${sec}. Se muestran avisos de zonas cercanas (${label}).`;
+        }
+        mountPostCards(els.postsBySection, r.posts.slice(0, 80));
+      } else {
+        mountPostCards(els.postsBySection, [], {
+          emptyHtml:
+            '<p class="legal">No hay publicaciones para este sector ni para sectores cercanos en el mapa. Puedes publicar desde «Publicar».</p>',
+        });
+      }
+    }
+  }
+
   mountPosts(
     els.postsSeeking,
     posts,
