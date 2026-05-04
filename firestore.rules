@@ -14,12 +14,6 @@ service cloud.firestore {
         && (!('concertSector' in request.resource.data)
           || (request.resource.data.concertSector is string
             && request.resource.data.concertSector.size() <= 120))
-        && (!('notifyEmailPrivate' in request.resource.data)
-          || request.resource.data.notifyEmailPrivate is bool)
-        && (!('notifyEmailForum' in request.resource.data)
-          || request.resource.data.notifyEmailForum is bool)
-        && (!('notifyEmailSectorPosts' in request.resource.data)
-          || request.resource.data.notifyEmailSectorPosts is bool)
         && (!('inboxThreadReadAt' in request.resource.data)
           || (request.resource.data.inboxThreadReadAt is map
             && request.resource.data.inboxThreadReadAt.size() <= 120));

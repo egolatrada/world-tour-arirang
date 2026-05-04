@@ -56,13 +56,7 @@ const state = {
   db: null,
   user: null,
   displayName: "",
-  profilePrefs: {
-    concertDay: "",
-    concertSector: "",
-    notifyEmailPrivate: false,
-    notifyEmailForum: false,
-    notifyEmailSectorPosts: false,
-  },
+  profilePrefs: { concertDay: "", concertSector: "" },
   /** threadId -> última vez abierta (ms); sincronizado en profiles.inboxThreadReadAt */
   threadReadAt: {},
   firebaseReady: false,
@@ -408,30 +402,14 @@ async function saveProfile(uid, displayName) {
 function loadProfilePrefsFromLocal() {
   try {
     const raw = localStorage.getItem(LOCAL_PROFILE_PREFS_KEY);
-    if (!raw)
-      return {
-        concertDay: "",
-        concertSector: "",
-        notifyEmailPrivate: false,
-        notifyEmailForum: false,
-        notifyEmailSectorPosts: false,
-      };
+    if (!raw) return { concertDay: "", concertSector: "" };
     const j = JSON.parse(raw);
     return {
       concertDay: typeof j.concertDay === "string" ? j.concertDay : "",
       concertSector: typeof j.concertSector === "string" ? j.concertSector : "",
-      notifyEmailPrivate: Boolean(j.notifyEmailPrivate),
-      notifyEmailForum: Boolean(j.notifyEmailForum),
-      notifyEmailSectorPosts: Boolean(j.notifyEmailSectorPosts),
     };
   } catch {
-    return {
-      concertDay: "",
-      concertSector: "",
-      notifyEmailPrivate: false,
-      notifyEmailForum: false,
-      notifyEmailSectorPosts: false,
-    };
+    return { concertDay: "", concertSector: "" };
   }
 }
 
@@ -452,18 +430,6 @@ function mergePrefsFromProfileDoc(profile) {
   state.profilePrefs = {
     concertDay: cloudDay !== "" ? cloudDay : local.concertDay,
     concertSector: cloudSec !== "" ? cloudSec : local.concertSector,
-    notifyEmailPrivate:
-      profile && typeof profile.notifyEmailPrivate === "boolean"
-        ? profile.notifyEmailPrivate
-        : local.notifyEmailPrivate,
-    notifyEmailForum:
-      profile && typeof profile.notifyEmailForum === "boolean"
-        ? profile.notifyEmailForum
-        : local.notifyEmailForum,
-    notifyEmailSectorPosts:
-      profile && typeof profile.notifyEmailSectorPosts === "boolean"
-        ? profile.notifyEmailSectorPosts
-        : local.notifyEmailSectorPosts,
   };
   saveProfilePrefsToLocal(state.profilePrefs);
 
@@ -528,22 +494,13 @@ async function markThreadRead(threadId) {
 
 async function persistProfilePrefsToCloud() {
   if (!state.db || !state.user || !state.displayName) return;
-  const {
-    concertDay,
-    concertSector,
-    notifyEmailPrivate,
-    notifyEmailForum,
-    notifyEmailSectorPosts,
-  } = state.profilePrefs;
+  const { concertDay, concertSector } = state.profilePrefs;
   await setDoc(
     doc(state.db, "profiles", state.user.uid),
     {
       displayName: state.displayName,
       concertDay: concertDay || "",
       concertSector: concertSector || "",
-      notifyEmailPrivate: Boolean(notifyEmailPrivate),
-      notifyEmailForum: Boolean(notifyEmailForum),
-      notifyEmailSectorPosts: Boolean(notifyEmailSectorPosts),
       updatedAt: serverTimestamp(),
     },
     { merge: true }
@@ -609,12 +566,6 @@ function fillProfileForm() {
   if (els.profileConcertSector) {
     els.profileConcertSector.value = state.profilePrefs.concertSector || "";
   }
-  const np = $("profile-notify-private");
-  const nf = $("profile-notify-forum");
-  const ns = $("profile-notify-sector");
-  if (np) np.checked = Boolean(state.profilePrefs.notifyEmailPrivate);
-  if (nf) nf.checked = Boolean(state.profilePrefs.notifyEmailForum);
-  if (ns) ns.checked = Boolean(state.profilePrefs.notifyEmailSectorPosts);
 }
 
 function promptDisplayNameModal() {
@@ -1007,14 +958,7 @@ function wireForms() {
     const fd = new FormData(els.formProfilePrefs);
     const concertDay = String(fd.get("concertDay") || "").trim();
     const concertSector = String(fd.get("concertSector") || "").trim().slice(0, 120);
-    state.profilePrefs = {
-      ...state.profilePrefs,
-      concertDay,
-      concertSector,
-      notifyEmailPrivate: fd.get("notifyEmailPrivate") === "on",
-      notifyEmailForum: fd.get("notifyEmailForum") === "on",
-      notifyEmailSectorPosts: fd.get("notifyEmailSectorPosts") === "on",
-    };
+    state.profilePrefs = { concertDay, concertSector };
     saveProfilePrefsToLocal(state.profilePrefs);
     if (state.firebaseReady && state.user && state.db) {
       try {
@@ -1027,7 +971,7 @@ function wireForms() {
         return;
       }
     }
-    alert("Preferencias guardadas.");
+    alert("Día y sector guardados.");
   });
 
   $("btn-link-google")?.addEventListener("click", async () => {

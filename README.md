@@ -27,10 +27,7 @@ GitHub Pages solo sirve archivos estáticos; el chat en tiempo real usa **Fireba
 
 Los avisos *Cross-Origin-Opener-Policy* al usar **Entrar con Google** suelen ser ruido del navegador con la ventana emergente; no impiden el inicio de sesión.
 
-### Badge de mensajes y correo
-
-- La web muestra un **contador rojo** en **Mensajes** cuando hay hilos con actividad más reciente que tu última lectura (se guarda en tu documento `profiles` y en la sesión).
-- Las casillas de **notificación por correo** en Perfil solo guardan **preferencias** en Firestore. Para **enviar** emails hace falta un servidor: lo habitual es **Cloud Functions** (proyecto Firebase en plan Blaze o condiciones actuales de facturación) + SMTP/SendGrid/Extensión “Trigger Email”, leyendo esos campos y el correo del usuario (cuenta con email/contraseña o email de Google).
+En la barra de navegación, **Mensajes** puede mostrar un **contador rojo** con conversaciones no leídas (se usa `inboxThreadReadAt` en `profiles`).
 
 ### Misma cuenta en otro dispositivo
 
