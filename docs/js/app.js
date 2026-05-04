@@ -1174,6 +1174,11 @@ async function bootFirebase() {
       updateAccountUi();
       return;
     }
+    try {
+      await user.getIdToken();
+    } catch (e) {
+      console.warn("getIdToken", e);
+    }
     let profile = await ensureProfile(user.uid);
     if (!profile?.displayName) {
       const name = await promptDisplayNameModal();
