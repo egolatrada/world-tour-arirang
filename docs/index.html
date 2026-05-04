@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Comunidad ARMY — Cívitas Metropolitano Madrid, 26 y 27 de junio. Información, foro y contacto entre personas con entrada. Proyecto Egolatrada."
+    />
+    <title>ARMY Metropolitano — Madrid Junio 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Ir al contenido</a>
+    <div class="shell">
+      <header class="topbar">
+        <a href="#/" class="brand" data-search="inicio home egolatrada">
+          <strong>ARMY Metropolitano</strong>
+          <span>Egolatrada · Madrid · 26 y 27 junio 2026</span>
+        </a>
+        <div class="search-wrap">
+          <label for="global-search">Buscar en la página</label>
+          <input
+            type="search"
+            id="global-search"
+            placeholder="Buscar sección, palabra clave, vista…"
+            autocomplete="off"
+          />
+        </div>
+        <nav class="nav-pills" id="main-nav" aria-label="Secciones principales">
+          <a href="#/" data-nav="home">Inicio</a>
+          <a href="#/sectores" data-nav="sections">Sectores</a>
+          <a href="#/publicar" data-nav="publish">Publicar</a>
+          <a href="#/foro" data-nav="forum">Foro</a>
+          <a href="#/bandeja" data-nav="inbox">Bandeja</a>
+          <a href="#/busco" data-nav="seeking">Busco entrada</a>
+          <a href="#/cedo" data-nav="giveaway">Cedo / no iré</a>
+          <a href="#/info" data-nav="info">Info útil</a>
+        </nav>
+      </header>
+
+      <main id="main">
+        <div id="firebase-banner" class="banner banner--warn" hidden></div>
+
+        <section data-view="home" id="view-home" class="is-visible">
+          <div class="hero">
+            <h1>BTS en el Cívitas Metropolitano</h1>
+            <p>
+              Punto de encuentro para el fandom ARMY con entradas los días
+              <strong>26 y 27 de junio de 2026</strong>. Explora sectores, lee
+              publicaciones de intercambio o acercamiento de localidades, usa el
+              foro público y la bandeja de mensajes privados para concretar con
+              una persona concreta.
+            </p>
+          </div>
+          <div class="panel legal">
+            <p>
+              <strong>Aviso importante:</strong> esta web es solo para
+              <strong>informarse y ponerse en contacto</strong>. El intercambio
+              real de entradas debe hacerse siempre por canales oficiales
+              (recomendable: <strong>Ticketmaster</strong>) o en persona, con
+              máxima precaución.
+            </p>
+            <p>
+              <strong>Egolatrada</strong> no se hace responsable de posibles
+              estafas ni del resultado de los acuerdos entre usuarios. La página
+              está pensada exclusivamente para la comunidad ARMY y
+              <strong>no está dirigida a revendedores</strong>.
+            </p>
+          </div>
+          <div class="panel">
+            <h2>Accesos rápidos</h2>
+            <p class="legal" style="margin-bottom: 1rem">
+              Todo es clicable: elige una vista o busca arriba.
+            </p>
+            <div class="nav-pills" style="margin-bottom: 0.75rem">
+              <a href="#/sectores" class="btn btn--primary">Ver listado de sectores</a>
+              <a href="#/publicar" class="btn">Publicar mi situación</a>
+              <a href="#/foro" class="btn">Entrar al foro</a>
+            </div>
+          </div>
+        </section>
+
+        <section data-view="sections" id="view-sections" hidden>
+          <div class="panel">
+            <h2>Sectores del estadio</h2>
+            <p class="legal">
+              Referencia orientativa según plano habitual del estadio; confirma
+              siempre el sector en tu entrada. Mapa interactivo de referencia:
+              <a
+                href="https://www.mapaplan.com/seating-plan/madrid-estadio-civitas-metropolitano-stadium-atletico-detailed-interactive-seat-row-numbers-map-plan/madrid-estadio-civitas-metropolitano-stadium-atletico-seating-map-plan.htm"
+                target="_blank"
+                rel="noopener noreferrer"
+                >MapaPlan — Metropolitano</a
+              >.
+            </p>
+            <p class="legal" id="section-filter-label" style="margin-top: 0.75rem"></p>
+          </div>
+          <div id="section-groups-root" class="section-groups"></div>
+          <div class="panel" id="section-posts-panel">
+            <h2>Publicaciones relacionadas</h2>
+            <p class="legal" id="section-posts-hint">
+              Pulsa un sector para filtrar publicaciones que lo mencionan.
+            </p>
+            <div id="posts-by-section" class="post-list"></div>
+          </div>
+        </section>
+
+        <section data-view="publish" id="view-publish" hidden>
+          <div class="panel">
+            <h2>Publicar</h2>
+            <p class="legal">
+              Describe con claridad qué entradas tienes (sectores / días) y a
+              qué zona te gustaría acercarte. No publiques datos bancarios ni
+              contraseñas. El chat privado sirve para concretar con una sola
+              persona.
+            </p>
+            <form id="form-post" class="form-grid">
+              <label>
+                Tipo
+                <select name="kind" required>
+                  <option value="exchange">
+                    Intercambio / acercar localidades (tengo entrada)
+                  </option>
+                  <option value="seeking">Busco entrada (aún no tengo)</option>
+                  <option value="giveaway">
+                    Tengo entrada y no podré ir (ceder o regalar)
+                  </option>
+                </select>
+              </label>
+              <label>
+                Días
+                <select name="dates" required>
+                  <option value="26">26 de junio</option>
+                  <option value="27">27 de junio</option>
+                  <option value="both">Ambos / me da igual</option>
+                </select>
+              </label>
+              <label>
+                Sectores que tienes (separados por coma)
+                <input
+                  name="sectionsHave"
+                  placeholder="Ej: 340, 503, 405"
+                  autocomplete="off"
+                />
+                <span class="chips-input-hint"
+                  >Si buscas entrada, déjalo vacío o escribe “ninguno”.</span
+                >
+              </label>
+              <label>
+                Sectores o zona deseada (separados por coma)
+                <input
+                  name="sectionsWant"
+                  placeholder="Ej: misma grada, 400–410, más juntas…"
+                  autocomplete="off"
+                />
+              </label>
+              <label>
+                Mensaje
+                <textarea
+                  name="body"
+                  required
+                  maxlength="3500"
+                  placeholder="Explica tu situación con respeto hacia otras personas ARMY."
+                ></textarea>
+              </label>
+              <button type="submit" class="btn btn--primary" id="btn-submit-post">
+                Publicar
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <section data-view="forum" id="view-forum" hidden>
+          <div class="panel">
+            <h2>Foro público</h2>
+            <p class="legal">
+              Conversación abierta: logística, transporte, quedadas con
+              cuidado. Los mensajes privados van en la bandeja.
+            </p>
+            <div id="forum-stream" class="forum-stream" aria-live="polite"></div>
+            <form id="form-forum" class="form-grid">
+              <label>
+                Tu mensaje
+                <textarea
+                  name="body"
+                  required
+                  maxlength="3500"
+                  placeholder="Escribe con respeto…"
+                ></textarea>
+              </label>
+              <button type="submit" class="btn btn--primary" id="btn-forum-send">
+                Enviar al foro
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <section data-view="inbox" id="view-inbox" hidden>
+          <div class="panel" id="inbox-list-panel">
+            <h2>Bandeja de mensajes privados</h2>
+            <p class="legal">
+              Elige una conversación. Para iniciar un chat, usa “Mensaje privado”
+              en una publicación del listado de sectores o vistas filtradas.
+            </p>
+            <div id="inbox-list" class="inbox-list"></div>
+          </div>
+          <div class="panel" id="inbox-thread-panel" hidden>
+            <button type="button" class="btn" id="btn-back-inbox">← Volver</button>
+            <h2 id="thread-title" style="margin-top: 0.75rem">Conversación</h2>
+            <div id="thread-messages" class="thread" aria-live="polite"></div>
+            <form id="form-thread" class="form-grid">
+              <label>
+                Mensaje
+                <textarea
+                  name="body"
+                  required
+                  maxlength="3500"
+                  placeholder="Concreta con cuidado; no compartas datos sensibles."
+                ></textarea>
+              </label>
+              <button type="submit" class="btn btn--primary">Enviar</button>
+            </form>
+          </div>
+        </section>
+
+        <section data-view="seeking" id="view-seeking" hidden>
+          <div class="panel">
+            <h2>Personas que buscan entrada</h2>
+            <p class="legal">
+              Publicaciones con tipo “busco entrada”. Comprueba siempre la
+              identidad y usa canales oficiales para el traspaso.
+            </p>
+            <div id="posts-seeking" class="post-list"></div>
+          </div>
+        </section>
+
+        <section data-view="giveaway" id="view-giveaway" hidden>
+          <div class="panel">
+            <h2>Ceden entrada o no podrán ir</h2>
+            <p class="legal">
+              Para quien tenga entrada y no pueda asistir y quiera ceder o
+              regalar (sin ánimo de reventa). Sé transparente y cuidadosa.
+            </p>
+            <div id="posts-giveaway" class="post-list"></div>
+          </div>
+        </section>
+
+        <section data-view="info" id="view-info" hidden>
+          <div class="panel">
+            <h2>Información útil</h2>
+            <ul class="legal">
+              <li>
+                <strong>Estadio:</strong> Cívitas Metropolitano — Av. de Luis
+                Aragonés, 4, 28022 Madrid.
+              </li>
+              <li>
+                <strong>Fechas:</strong> 26 y 27 de junio de 2026 (comprueba tu
+                entrada para el día exacto).
+              </li>
+              <li>
+                <strong>Intercambio oficial:</strong> prioriza
+                <strong>Ticketmaster</strong> o acuerdos en persona con
+                precaución.
+              </li>
+              <li>
+                <strong>Esta web:</strong> solo ayuda a encontrar a otras
+                personas ARMY y hablar; no gestiona entradas.
+              </li>
+            </ul>
+          </div>
+          <div class="panel legal">
+            <p>
+              ¿Sugerencias para mejorar la página? Puedes abrir un issue en el
+              repositorio de GitHub del proyecto o contactar a Egolatrada por tus
+              canales habituales del fandom.
+            </p>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        Hecho con cariño para ARMY · Colores Arirang #E41A3E · No revendedores
+      </footer>
+    </div>
+
+    <div id="modal-root" hidden></div>
+
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>
