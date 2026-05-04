@@ -23,7 +23,7 @@ GitHub Pages solo sirve archivos estáticos; el chat en tiempo real usa **Fireba
 5. **Firestore Database**: crea la base; copia **tal cual** el archivo `firestore.rules` de la raíz del repo en **Firestore → Rules → Publicar**. Si las reglas no coinciden con el repo, verás *Missing or insufficient permissions* al abrir la bandeja.
 6. **Índices de la bandeja**: la consulta de hilos usa `participants` + `updatedAt`. Opciones:
    - Con [Firebase CLI](https://firebase.google.com/docs/cli): en la carpeta del repo, `firebase deploy --only firestore:indexes` (o despliega todo el bloque Firestore).
-   - Sin CLI: abre la web con F12 → pestaña Consola; si aparece un enlace a `console.firebase.google.com` con *create composite index*, ábrelo y pulsa **Crear índice**. El archivo `firestore.indexes.json` describe el mismo índice para referencia.
+   - Sin CLI: en la consola del navegador (F12) a veces aparece un enlace para crear el índice. Si al abrirlo ves **403**, ignóralo: entra en [Firebase Console](https://console.firebase.google.com/) con la **misma cuenta** que creó el proyecto → **Firestore Database** → pestaña **Índices** → **Crear índice** → colección **`threads`**, primer campo **`participants`** (tipo **Matrices** / *Arrays* → **Contiene**), segundo campo **`updatedAt`** (**Descendente**) → Crear. Es el mismo índice que describe `firestore.indexes.json`.
 
 Los avisos *Cross-Origin-Opener-Policy* al usar **Entrar con Google** suelen ser ruido del navegador con la ventana emergente; no impiden el inicio de sesión.
 
