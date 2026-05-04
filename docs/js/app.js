@@ -908,12 +908,11 @@ async function bootFirebase() {
     }
     mergePrefsFromProfileDoc(profile);
     updateIdentityUi();
-    const { view } = parseRoute();
+    const { view, arg } = parseRoute();
     if (view === "profile") fillProfileForm();
     subscribePosts();
     subscribeForum();
     subscribeThreads();
-    const { view, arg } = parseRoute();
     if (view === "inbox" && arg) openThreadUi(arg);
   });
 
