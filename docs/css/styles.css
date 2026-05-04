@@ -568,6 +568,19 @@ a.brand:hover .brand__title {
 .inbox-row:hover {
   border-color: var(--arirang);
 }
+.inbox-row--unread {
+  background: rgba(228, 26, 62, 0.12);
+  border-color: rgba(228, 26, 62, 0.5);
+  box-shadow: inset 3px 0 0 var(--arirang);
+}
+.inbox-row--unread:hover {
+  border-color: var(--arirang);
+  background: rgba(228, 26, 62, 0.18);
+}
+.inbox-row--unread .inbox-row__time {
+  color: var(--arirang) !important;
+  font-weight: 600;
+}
 .inbox-row.is-hidden {
   display: none;
 }

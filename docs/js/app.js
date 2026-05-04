@@ -461,6 +461,11 @@ function countUnreadThreads() {
   return n;
 }
 
+function isThreadUnread(t) {
+  if (!state.user || !t?.id) return false;
+  return tsToMillis(t.updatedAt) > (state.threadReadAt[t.id] || 0);
+}
+
 function updateInboxBadge() {
   const el = els.inboxBadge;
   if (!el) return;
@@ -757,14 +762,20 @@ function renderInboxList() {
           const names = t.participantNames || {};
           const title = names[other] || "ARMY";
           const preview = t.lastPreview || "Sin mensajes aún";
+          const unread = isThreadUnread(t);
+          const rowClass = unread ? "inbox-row inbox-row--unread" : "inbox-row";
+          const aria =
+            unread ? `Conversación con ${title}, sin leer` : `Conversación con ${title}`;
           return `
-        <button type="button" class="inbox-row" data-thread="${escapeAttr(t.id)}" data-search="${escapeAttr(
+        <button type="button" class="${rowClass}" data-thread="${escapeAttr(t.id)}" data-search="${escapeAttr(
           `${title} ${preview}`
-        )}">
+        )}" aria-label="${escapeAttr(aria)}">
           <span><strong>${escapeHtml(title)}</strong><br/><span style="font-size:0.8rem;color:var(--muted)">${escapeHtml(
             preview
           )}</span></span>
-          <span style="font-size:0.75rem;color:var(--muted)">${formatTime(t.updatedAt)}</span>
+          <span class="inbox-row__time" style="font-size:0.75rem;color:var(--muted)">${formatTime(
+            t.updatedAt
+          )}</span>
         </button>`;
         })
         .join("")
@@ -786,6 +797,8 @@ function closeThreadUi() {
   }
   if (els.inboxListPanel) els.inboxListPanel.hidden = false;
   if (els.inboxThreadPanel) els.inboxThreadPanel.hidden = true;
+  renderInboxList();
+  applySearchFilter();
 }
 
 function openThreadUi(threadId) {
