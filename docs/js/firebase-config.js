@@ -1,19 +1,21 @@
-/**
- * Copia este archivo y reemplaza con tu proyecto Firebase
- * (Proyecto → Configuración → Tus apps → SDK).
- * Para GitHub Pages: puedes dejar valores públicos aquí y restringir
- * el dominio en la consola de Google Cloud (clave API).
- */
-export const firebaseConfig = {
-  apiKey: "REEMPLAZA_API_KEY",
-  authDomain: "REEMPLAZA.firebaseapp.com",
-  projectId: "REEMPLAZA_PROJECT_ID",
-  storageBucket: "REEMPLAZA.appspot.com",
-  messagingSenderId: "REEMPLAZA",
-  appId: "REEMPLAZA_APP_ID",
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyD2YVJCui6MycwktJf4yu8iC8UeIL1ml70",
+  authDomain: "world-tour-arirang.firebaseapp.com",
+  projectId: "world-tour-arirang",
+  storageBucket: "world-tour-arirang.firebasestorage.app",
+  messagingSenderId: "336157639280",
+  appId: "1:336157639280:web:ff679fcd54d096db822ab5",
+  measurementId: "G-JGW4YXJHL1"
 };
 
-export function isFirebaseConfigured() {
-  const k = firebaseConfig.apiKey || "";
-  return k.length > 12 && !k.startsWith("REEMPLAZA");
-}
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
