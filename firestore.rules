@@ -7,7 +7,13 @@ service cloud.firestore {
         && request.auth.uid == userId
         && request.resource.data.displayName is string
         && request.resource.data.displayName.size() >= 2
-        && request.resource.data.displayName.size() <= 40;
+        && request.resource.data.displayName.size() <= 40
+        && (!('concertDay' in request.resource.data)
+          || (request.resource.data.concertDay is string
+            && request.resource.data.concertDay.size() <= 40))
+        && (!('concertSector' in request.resource.data)
+          || (request.resource.data.concertSector is string
+            && request.resource.data.concertSector.size() <= 120));
       allow delete: if false;
     }
 

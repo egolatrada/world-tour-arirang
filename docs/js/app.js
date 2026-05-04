@@ -28,6 +28,8 @@ const KIND_LABEL = {
   giveaway: "Cedo / no iré",
 };
 
+const LOCAL_PROFILE_PREFS_KEY = "arirang-concert-prefs";
+
 const VIEWS = [
   "home",
   "sections",
@@ -37,6 +39,7 @@ const VIEWS = [
   "seeking",
   "giveaway",
   "info",
+  "profile",
 ];
 
 const state = {
@@ -45,6 +48,7 @@ const state = {
   db: null,
   user: null,
   displayName: "",
+  profilePrefs: { concertDay: "", concertSector: "" },
   firebaseReady: false,
   selectedSection: null,
   posts: [],
@@ -98,6 +102,11 @@ function initElements() {
   els.modalRoot = $("modal-root");
   els.btnSubmitPost = $("btn-submit-post");
   els.btnForumSend = $("btn-forum-send");
+  els.formProfilePrefs = $("form-profile-prefs");
+  els.profileDisplayNickname = $("profile-display-nickname");
+  els.profileConcertDay = $("profile-concert-day");
+  els.profileConcertSector = $("profile-concert-sector");
+  els.headerUsername = $("header-username");
 }
 
 function parseRoute() {
@@ -112,6 +121,7 @@ function parseRoute() {
   if (name === "busco" || name === "seeking") return { view: "seeking", arg };
   if (name === "cedo" || name === "giveaway") return { view: "giveaway", arg };
   if (name === "info") return { view: "info", arg };
+  if (name === "perfil" || name === "profile") return { view: "profile", arg };
   if (name === "hilo" || name === "thread") return { view: "inbox", arg: parts[1] || null };
   return { view: "home", arg: null };
 }
@@ -144,6 +154,7 @@ function navigate(view, extra = null) {
     seeking: "/busco",
     giveaway: "/cedo",
     info: "/info",
+    profile: "/perfil",
   };
   let path = map[view] || "/";
   if (view === "inbox" && extra) path = `/hilo/${extra}`;
@@ -172,6 +183,9 @@ function onHashChange() {
   renderSectionFilterLabel();
   renderPostsLists();
   applySearchFilter();
+  if (view === "profile") {
+    fillProfileForm();
+  }
 }
 
 function renderSectionFilterLabel() {
@@ -364,6 +378,72 @@ async function saveProfile(uid, displayName) {
     { displayName, updatedAt: serverTimestamp() },
     { merge: true }
   );
+}
+
+function loadProfilePrefsFromLocal() {
+  try {
+    const raw = localStorage.getItem(LOCAL_PROFILE_PREFS_KEY);
+    if (!raw) return { concertDay: "", concertSector: "" };
+    const j = JSON.parse(raw);
+    return {
+      concertDay: typeof j.concertDay === "string" ? j.concertDay : "",
+      concertSector: typeof j.concertSector === "string" ? j.concertSector : "",
+    };
+  } catch {
+    return { concertDay: "", concertSector: "" };
+  }
+}
+
+function saveProfilePrefsToLocal(prefs) {
+  try {
+    localStorage.setItem(LOCAL_PROFILE_PREFS_KEY, JSON.stringify(prefs));
+  } catch (e) {
+    console.warn(e);
+  }
+}
+
+function mergePrefsFromProfileDoc(profile) {
+  const local = loadProfilePrefsFromLocal();
+  const cloudDay =
+    profile && typeof profile.concertDay === "string" ? profile.concertDay : "";
+  const cloudSec =
+    profile && typeof profile.concertSector === "string" ? profile.concertSector : "";
+  state.profilePrefs = {
+    concertDay: cloudDay !== "" ? cloudDay : local.concertDay,
+    concertSector: cloudSec !== "" ? cloudSec : local.concertSector,
+  };
+  saveProfilePrefsToLocal(state.profilePrefs);
+}
+
+async function persistProfilePrefsToCloud() {
+  if (!state.db || !state.user || !state.displayName) return;
+  const { concertDay, concertSector } = state.profilePrefs;
+  await setDoc(
+    doc(state.db, "profiles", state.user.uid),
+    {
+      displayName: state.displayName,
+      concertDay: concertDay || "",
+      concertSector: concertSector || "",
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+function updateIdentityUi() {
+  const name = state.displayName || "ARMY";
+  if (els.headerUsername) els.headerUsername.textContent = name;
+  if (els.profileDisplayNickname) els.profileDisplayNickname.textContent = name;
+}
+
+function fillProfileForm() {
+  updateIdentityUi();
+  if (els.profileConcertDay) {
+    els.profileConcertDay.value = state.profilePrefs.concertDay || "";
+  }
+  if (els.profileConcertSector) {
+    els.profileConcertSector.value = state.profilePrefs.concertSector || "";
+  }
 }
 
 function promptDisplayNameModal() {
@@ -723,6 +803,27 @@ function wireForms() {
   els.btnBackInbox?.addEventListener("click", () => {
     navigate("inbox");
   });
+
+  els.formProfilePrefs?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fd = new FormData(els.formProfilePrefs);
+    const concertDay = String(fd.get("concertDay") || "").trim();
+    const concertSector = String(fd.get("concertSector") || "").trim().slice(0, 120);
+    state.profilePrefs = { concertDay, concertSector };
+    saveProfilePrefsToLocal(state.profilePrefs);
+    if (state.firebaseReady && state.user && state.db) {
+      try {
+        await persistProfilePrefsToCloud();
+      } catch (err) {
+        console.error(err);
+        alert(
+          "Se guardó en este dispositivo, pero no en la nube. Revisa reglas de Firestore o conexión."
+        );
+        return;
+      }
+    }
+    alert("Día y sector guardados.");
+  });
 }
 
 function applySearchFilter() {
@@ -740,7 +841,7 @@ function applySearchFilter() {
   });
 
   document.querySelectorAll("#main-nav [data-nav]").forEach((el) => {
-    const label = el.textContent || "";
+    const label = el.getAttribute("data-search") || el.textContent || "";
     const key = el.getAttribute("data-nav") || "";
     el.classList.toggle("is-hidden", tokens.length && !match(`${label} ${key}`));
   });
@@ -801,6 +902,10 @@ async function bootFirebase() {
     } else {
       state.displayName = profile.displayName;
     }
+    mergePrefsFromProfileDoc(profile);
+    updateIdentityUi();
+    const { view } = parseRoute();
+    if (view === "profile") fillProfileForm();
     subscribePosts();
     subscribeForum();
     subscribeThreads();
@@ -812,7 +917,10 @@ async function bootFirebase() {
 }
 
 function boot() {
+  state.profilePrefs = loadProfilePrefsFromLocal();
   initElements();
+  updateIdentityUi();
+  fillProfileForm();
   renderSectionGroups();
   wireForms();
   wireSearch();
