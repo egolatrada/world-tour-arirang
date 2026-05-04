@@ -20,8 +20,12 @@ GitHub Pages solo sirve archivos estáticos; el chat en tiempo real usa **Fireba
    - Activa **Google**: elige un correo de asistencia del proyecto y guarda. Si pide configuración adicional, sigue el asistente (OAuth).
    - Activa **Correo electrónico / contraseña** (email/contraseña).
 4. **Dominios autorizados** (imprescindible para que Google funcione en tu web): en **Authentication → Settings → Authorized domains**, añade el dominio donde se publica el sitio, por ejemplo `tuusuario.github.io` (GitHub Pages no usa `www`).
-5. **Firestore Database**: crea la base en modo de prueba o con reglas personalizadas; copia el contenido de `firestore.rules` (en la raíz del repo) en **Firestore → Rules → Publicar**.
-6. Si la consola pide **índices compuestos** al usar la bandeja o mensajes, abre el enlace del error y créalos con un clic.
+5. **Firestore Database**: crea la base; copia **tal cual** el archivo `firestore.rules` de la raíz del repo en **Firestore → Rules → Publicar**. Si las reglas no coinciden con el repo, verás *Missing or insufficient permissions* al abrir la bandeja.
+6. **Índices de la bandeja**: la consulta de hilos usa `participants` + `updatedAt`. Opciones:
+   - Con [Firebase CLI](https://firebase.google.com/docs/cli): en la carpeta del repo, `firebase deploy --only firestore:indexes` (o despliega todo el bloque Firestore).
+   - Sin CLI: abre la web con F12 → pestaña Consola; si aparece un enlace a `console.firebase.google.com` con *create composite index*, ábrelo y pulsa **Crear índice**. El archivo `firestore.indexes.json` describe el mismo índice para referencia.
+
+Los avisos *Cross-Origin-Opener-Policy* al usar **Entrar con Google** suelen ser ruido del navegador con la ventana emergente; no impiden el inicio de sesión.
 
 ### Misma cuenta en otro dispositivo
 
@@ -36,6 +40,7 @@ Las claves de Firebase en cliente son públicas por naturaleza; restringe la **A
 - `docs/js/app.js` — rutas, Firebase, foro y mensajes.
 - `docs/js/sections-data.js` — sectores de referencia.
 - `firestore.rules` — reglas de seguridad para Firestore.
+- `firestore.indexes.json` — índice compuesto para la bandeja (`threads`: participantes + fecha).
 
 ## Crédito
 

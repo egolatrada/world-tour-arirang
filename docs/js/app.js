@@ -641,26 +641,33 @@ function subscribeThreads() {
   const qy = query(
     collection(state.db, "threads"),
     where("participants", "array-contains", state.user.uid),
+    orderBy("updatedAt", "desc"),
     limit(40)
   );
-    state.unsubThreads = onSnapshot(
+  state.unsubThreads = onSnapshot(
     qy,
     (snap) => {
       state.threads = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      state.threads.sort((a, b) => {
-        const ta = a.updatedAt?.toMillis?.() || 0;
-        const tb = b.updatedAt?.toMillis?.() || 0;
-        return tb - ta;
-      });
       renderInboxList();
       applySearchFilter();
     },
     (err) => {
       console.error(err);
-      showBanner(
-        "Para la bandeja hace falta un índice compuesto en Firestore (enlace en consola de error).",
-        "warn"
-      );
+      if (err.code === "permission-denied") {
+        showBanner(
+          "Permisos de Firestore: en Firebase → Firestore → Rules, pega y publica el archivo firestore.rules de este repositorio (misma pestaña «Publicar»).",
+          "warn"
+        );
+        return;
+      }
+      if (err.code === "failed-precondition") {
+        showBanner(
+          "Índice de bandeja: en la consola del navegador (F12) abre el enlace que empieza por console.firebase.google.com y pulsa «Crear índice», o despliega firestore.indexes.json con Firebase CLI.",
+          "warn"
+        );
+        return;
+      }
+      showBanner(err.message || "Error al cargar la bandeja.", "warn");
     }
   );
 }
@@ -725,10 +732,27 @@ function openThreadUi(threadId) {
     orderBy("createdAt", "asc"),
     limit(200)
   );
-  state.unsubMessages = onSnapshot(mq, (snap) => {
-    state.threadMessages = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    renderThreadMessages();
-  });
+  state.unsubMessages = onSnapshot(
+    mq,
+    (snap) => {
+      state.threadMessages = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderThreadMessages();
+    },
+    (err) => {
+      console.error(err);
+      if (err.code === "permission-denied") {
+        showBanner(
+          "No se pudieron leer los mensajes: revisa que las reglas de Firestore del repo estén publicadas en Firebase.",
+          "warn"
+        );
+      } else if (err.code === "failed-precondition") {
+        showBanner(
+          "Hace falta un índice para mensajes del hilo: usa el enlace de la consola (F12) para crearlo.",
+          "warn"
+        );
+      }
+    }
+  );
 }
 
 function renderThreadMessages() {
