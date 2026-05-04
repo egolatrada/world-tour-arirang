@@ -3,11 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <script>
-      /* GitHub Pages (sitio de proyecto): sin barra final, ./js/app.js puede resolverse mal y el módulo no carga. */
+      /* GitHub Pages: normaliza siempre el directorio del documento para que ./css y los módulos resuelvan bien. */
       (function () {
         if (!location.protocol.startsWith("http")) return;
         var path = location.pathname.replace(/\/index\.html?$/i, "");
-        if (!path || path === "/") return;
         if (!path.endsWith("/")) path += "/";
         var b = document.createElement("base");
         b.href = location.origin + path;
@@ -465,6 +464,49 @@
 
     <div id="modal-root" hidden></div>
 
-    <script type="module" src="./js/app.js"></script>
+    <script>
+      /* Carga del módulo con URL absoluta respecto a <base>, evita 404 silenciosos en GitHub Pages. */
+      (function () {
+        var src = new URL("js/app.js", document.baseURI).href;
+        var s = document.createElement("script");
+        s.type = "module";
+        s.src = src;
+        s.onerror = function () {
+          console.error("[WORLD TOUR ARIRANG] No se cargó app.js desde:", src);
+          function parseRoute() {
+            var raw = (location.hash || "#/").replace(/^#\/?/, "");
+            var parts = raw.split("/").filter(Boolean);
+            var name = parts[0] || "home";
+            var arg = parts[1] || null;
+            if (name === "sectores" || name === "sections") return { view: "sections", arg: arg };
+            if (name === "publicar" || name === "publish") return { view: "publish", arg: arg };
+            if (name === "foro" || name === "forum") return { view: "forum", arg: arg };
+            if (name === "bandeja" || name === "inbox") return { view: "inbox", arg: arg };
+            if (name === "busco" || name === "seeking") return { view: "seeking", arg: arg };
+            if (name === "cedo" || name === "giveaway") return { view: "giveaway", arg: arg };
+            if (name === "info") return { view: "info", arg: arg };
+            if (name === "perfil" || name === "profile") return { view: "profile", arg: arg };
+            if (name === "hilo" || name === "thread") return { view: "inbox", arg: parts[1] || null };
+            return { view: "home", arg: null };
+          }
+          function syncViews() {
+            var view = parseRoute().view;
+            document.querySelectorAll("[data-view]").forEach(function (node) {
+              var v = node.getAttribute("data-view");
+              var on = v === view;
+              node.classList.toggle("is-visible", on);
+              node.hidden = !on;
+            });
+            document.querySelectorAll("[data-nav]").forEach(function (el) {
+              var key = el.getAttribute("data-nav");
+              el.classList.toggle("is-active", key === view);
+            });
+          }
+          window.addEventListener("hashchange", syncViews);
+          syncViews();
+        };
+        document.body.appendChild(s);
+      })();
+    </script>
   </body>
 </html>

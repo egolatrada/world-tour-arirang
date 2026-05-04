@@ -161,7 +161,17 @@ function navigate(view, extra = null) {
   location.hash = `#${path}`;
 }
 
+let routeRaf = null;
+
 function onHashChange() {
+  if (routeRaf != null) cancelAnimationFrame(routeRaf);
+  routeRaf = requestAnimationFrame(() => {
+    routeRaf = null;
+    runHashRoute();
+  });
+}
+
+function runHashRoute() {
   const { view, arg } = parseRoute();
   showView(view);
   if (view === "sections") {
@@ -919,7 +929,7 @@ function boot() {
   wireForms();
   wireSearch();
   window.addEventListener("hashchange", onHashChange);
-  onHashChange();
+  runHashRoute();
   bootFirebase();
 }
 
