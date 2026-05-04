@@ -634,6 +634,63 @@ footer.site-footer {
   font-weight: 500;
 }
 
+.site-footer__contact {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.site-footer__contact-title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+.site-footer__contact-intro {
+  margin: 0 auto 0.75rem;
+  max-width: 28rem;
+}
+
+.site-footer__contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+}
+
+.site-footer__contact-links li {
+  display: inline-flex;
+  align-items: center;
+}
+
+.site-footer__contact-links li + li::before {
+  content: "·";
+  margin-right: 0.65rem;
+  color: var(--muted);
+}
+
+.site-footer__discord {
+  color: var(--muted);
+}
+
+.site-footer__discord strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.site-footer__tagline {
+  margin: 0;
+}
+
 [data-view] {
   display: none;
 }
