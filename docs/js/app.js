@@ -886,9 +886,9 @@ function wireForms() {
   });
 
   $("btn-link-google")?.addEventListener("click", async () => {
-    if (!state.auth || !state.user?.isAnonymous) return;
+    if (!state.user?.isAnonymous) return;
     try {
-      await linkWithPopup(state.auth, googleProvider());
+      await linkWithPopup(state.user, googleProvider());
       alert(
         "Cuenta enlazada con Google. En otro dispositivo usa «Entrar con Google» con la misma cuenta."
       );
@@ -900,6 +900,10 @@ function wireForms() {
         );
       } else if (err.code === "auth/popup-closed-by-user") {
         return;
+      } else if (err.code === "auth/operation-not-allowed") {
+        alert(
+          "Google no está activado en Firebase. En la consola: Authentication → Sign-in method → activa Google (y el dominio egolatrada.github.io en Authorized domains)."
+        );
       } else {
         alert(err.message || "No se pudo enlazar con Google.");
       }
@@ -931,6 +935,10 @@ function wireForms() {
         );
       } else if (err.code === "auth/weak-password") {
         alert("Contraseña demasiado débil.");
+      } else if (err.code === "auth/operation-not-allowed") {
+        alert(
+          "Correo/contraseña no está activado en Firebase. En la consola: Authentication → Sign-in method → activa Email/Password."
+        );
       } else {
         alert(err.message || "No se pudo enlazar el correo.");
       }
@@ -944,6 +952,12 @@ function wireForms() {
     } catch (err) {
       console.error(err);
       if (err.code === "auth/popup-closed-by-user") return;
+      if (err.code === "auth/operation-not-allowed") {
+        alert(
+          "Google no está activado en Firebase (Authentication → Sign-in method → Google)."
+        );
+        return;
+      }
       alert(err.message || "No se pudo iniciar sesión con Google.");
     }
   });
@@ -965,6 +979,10 @@ function wireForms() {
         err.code === "auth/invalid-credential"
       ) {
         alert("Correo o contraseña incorrectos.");
+      } else if (err.code === "auth/operation-not-allowed") {
+        alert(
+          "Correo/contraseña no está activado en Firebase (Authentication → Sign-in method)."
+        );
       } else {
         alert(err.message || "No se pudo iniciar sesión.");
       }
