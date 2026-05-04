@@ -1,6 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getAuth,
+  setPersistence,
+  browserLocalPersistence,
   signInAnonymously,
   onAuthStateChanged,
   GoogleAuthProvider,
@@ -606,6 +608,16 @@ function promptDisplayNameModal() {
 
 async function initAuthFlow() {
   if (!state.auth || !state.db) return;
+  try {
+    await setPersistence(state.auth, browserLocalPersistence);
+  } catch (e) {
+    console.warn("setPersistence", e);
+  }
+  /* Esperar a que IndexedDB restaure Google/correo/anónimo antes de signInAnonymously */
+  if (typeof state.auth.authStateReady === "function") {
+    await state.auth.authStateReady();
+  }
+  if (state.auth.currentUser) return;
   await signInAnonymously(state.auth).catch((e) => {
     console.error(e);
     showBanner(
