@@ -840,12 +840,6 @@ function applySearchFilter() {
     el.classList.toggle("is-hidden", tokens.length && !match(el.textContent));
   });
 
-  document.querySelectorAll("#main-nav [data-nav]").forEach((el) => {
-    const label = el.getAttribute("data-search") || el.textContent || "";
-    const key = el.getAttribute("data-nav") || "";
-    el.classList.toggle("is-hidden", tokens.length && !match(`${label} ${key}`));
-  });
-
   document.querySelectorAll(".post-card").forEach((el) => {
     const hay = el.getAttribute("data-search") || "";
     el.classList.toggle("is-hidden", tokens.length && !match(hay));

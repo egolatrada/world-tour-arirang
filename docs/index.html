@@ -2,6 +2,18 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      /* GitHub Pages (sitio de proyecto): sin barra final, ./js/app.js puede resolverse mal y el módulo no carga. */
+      (function () {
+        if (!location.protocol.startsWith("http")) return;
+        var path = location.pathname.replace(/\/index\.html?$/i, "");
+        if (!path || path === "/") return;
+        if (!path.endsWith("/")) path += "/";
+        var b = document.createElement("base");
+        b.href = location.origin + path;
+        document.head.prepend(b);
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
