@@ -382,6 +382,81 @@
               <p class="legal" id="profile-nickname-line">
                 Apodo visible: <strong id="profile-display-nickname">—</strong>
               </p>
+
+              <div class="panel panel--nested" id="panel-account" hidden>
+                <h3>Cuenta en varios dispositivos</h3>
+                <p class="legal" id="account-status-line"></p>
+
+                <div id="account-block-anonymous" hidden>
+                  <p class="legal">
+                    <strong>Primera vez aquí</strong> — enlaza este usuario anónimo con Google o con un correo y contraseña. Así conservas el mismo perfil y mensajes al cambiar de móvil u ordenador.
+                  </p>
+                  <div class="account-actions">
+                    <button type="button" class="btn btn--primary" id="btn-link-google">
+                      Enlazar con Google
+                    </button>
+                  </div>
+                  <form id="form-link-email" class="form-grid account-form">
+                    <label>
+                      Correo para enlazar
+                      <input
+                        type="email"
+                        name="email"
+                        required
+                        autocomplete="email"
+                        inputmode="email"
+                      />
+                    </label>
+                    <label>
+                      Contraseña (mín. 6 caracteres)
+                      <input
+                        type="password"
+                        name="password"
+                        required
+                        minlength="6"
+                        autocomplete="new-password"
+                      />
+                    </label>
+                    <button type="submit" class="btn">Enlazar con correo</button>
+                  </form>
+
+                  <hr class="account-sep" />
+
+                  <p class="legal">
+                    <strong>Ya enlazaste antes en otro sitio</strong> — inicia sesión para recuperar tu cuenta (sustituye la sesión de invitado actual).
+                  </p>
+                  <div class="account-actions">
+                    <button type="button" class="btn btn--primary" id="btn-signin-google">
+                      Entrar con Google
+                    </button>
+                  </div>
+                  <form id="form-signin-email" class="form-grid account-form">
+                    <label>
+                      Correo
+                      <input
+                        type="email"
+                        name="email"
+                        required
+                        autocomplete="username"
+                        inputmode="email"
+                      />
+                    </label>
+                    <label>
+                      Contraseña
+                      <input type="password" name="password" required autocomplete="current-password" />
+                    </label>
+                    <button type="submit" class="btn">Entrar con correo</button>
+                  </form>
+                </div>
+
+                <div id="account-block-signedin" hidden>
+                  <p class="legal">
+                    Si cierras sesión en este navegador, se creará un nuevo invitado; para recuperar tu cuenta permanente vuelve a entrar con Google o correo.
+                  </p>
+                  <button type="button" class="btn" id="btn-sign-out">Cerrar sesión</button>
+                </div>
+              </div>
+
               <form id="form-profile-prefs" class="form-grid">
                 <label>
                   Día del concierto (referencia personal)

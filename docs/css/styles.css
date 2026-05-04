@@ -623,6 +623,35 @@ a.brand:hover .brand__title {
   padding-left: 1.1rem;
 }
 
+.panel--nested {
+  margin-top: 1.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.panel--nested h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.account-actions {
+  margin: 0.5rem 0 1rem;
+}
+
+.account-form {
+  margin-bottom: 0.5rem;
+}
+
+.account-sep {
+  margin: 1.25rem 0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
 footer.site-footer {
   margin-top: 2rem;
   padding: 1rem 0.5rem 0.25rem;

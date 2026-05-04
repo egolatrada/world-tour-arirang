@@ -3,6 +3,13 @@ import {
   getAuth,
   signInAnonymously,
   onAuthStateChanged,
+  GoogleAuthProvider,
+  EmailAuthProvider,
+  linkWithCredential,
+  linkWithPopup,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
   getFirestore,
@@ -444,6 +451,51 @@ function updateIdentityUi() {
   if (els.profileDisplayNickname) els.profileDisplayNickname.textContent = name;
 }
 
+function updateAccountUi() {
+  const panel = $("panel-account");
+  const anonEl = $("account-block-anonymous");
+  const signedEl = $("account-block-signedin");
+  const statusEl = $("account-status-line");
+  if (!panel || !anonEl || !signedEl || !statusEl) return;
+
+  if (!state.firebaseReady) {
+    panel.hidden = true;
+    return;
+  }
+  panel.hidden = false;
+
+  const user = state.user;
+  if (!user) {
+    anonEl.hidden = true;
+    signedEl.hidden = true;
+    statusEl.textContent = "Conectando con Firebase…";
+    return;
+  }
+
+  if (user.isAnonymous) {
+    anonEl.hidden = false;
+    signedEl.hidden = true;
+    statusEl.textContent =
+      "Sesión de invitado en este navegador. Enlaza la cuenta o entra para usar la misma identidad en otros dispositivos.";
+  } else {
+    anonEl.hidden = true;
+    signedEl.hidden = false;
+    const labels = user.providerData.map((p) => {
+      if (p.providerId === "google.com") return "Google";
+      if (p.providerId === "password") return "correo y contraseña";
+      return p.providerId;
+    });
+    const provText = labels.length ? labels.join(" + ") : "cuenta";
+    statusEl.textContent = `Cuenta permanente (${provText}). Inicia sesión con el mismo método en otro móvil u ordenador para recuperar mensajes y perfil.`;
+  }
+}
+
+function googleProvider() {
+  const p = new GoogleAuthProvider();
+  p.setCustomParameters({ prompt: "select_account" });
+  return p;
+}
+
 function fillProfileForm() {
   updateIdentityUi();
   if (els.profileConcertDay) {
@@ -832,6 +884,104 @@ function wireForms() {
     }
     alert("Día y sector guardados.");
   });
+
+  $("btn-link-google")?.addEventListener("click", async () => {
+    if (!state.auth || !state.user?.isAnonymous) return;
+    try {
+      await linkWithPopup(state.auth, googleProvider());
+      alert(
+        "Cuenta enlazada con Google. En otro dispositivo usa «Entrar con Google» con la misma cuenta."
+      );
+    } catch (err) {
+      console.error(err);
+      if (err.code === "auth/credential-already-in-use") {
+        alert(
+          "Ese Google ya está vinculado a otra cuenta. Usa «Entrar con Google» abajo en lugar de enlazar."
+        );
+      } else if (err.code === "auth/popup-closed-by-user") {
+        return;
+      } else {
+        alert(err.message || "No se pudo enlazar con Google.");
+      }
+    }
+  });
+
+  $("form-link-email")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!state.auth || !state.user?.isAnonymous) return;
+    const fd = new FormData(e.target);
+    const email = String(fd.get("email") || "").trim();
+    const password = String(fd.get("password") || "");
+    if (password.length < 6) {
+      alert("La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
+    try {
+      const cred = EmailAuthProvider.credential(email, password);
+      await linkWithCredential(state.user, cred);
+      e.target.reset();
+      alert(
+        "Correo enlazado. En otro dispositivo usa «Entrar con correo» con el mismo email y contraseña."
+      );
+    } catch (err) {
+      console.error(err);
+      if (err.code === "auth/email-already-in-use") {
+        alert(
+          "Ese correo ya tiene cuenta. Usa «Entrar con correo» en lugar de enlazar, o prueba otro email."
+        );
+      } else if (err.code === "auth/weak-password") {
+        alert("Contraseña demasiado débil.");
+      } else {
+        alert(err.message || "No se pudo enlazar el correo.");
+      }
+    }
+  });
+
+  $("btn-signin-google")?.addEventListener("click", async () => {
+    if (!state.auth) return;
+    try {
+      await signInWithPopup(state.auth, googleProvider());
+    } catch (err) {
+      console.error(err);
+      if (err.code === "auth/popup-closed-by-user") return;
+      alert(err.message || "No se pudo iniciar sesión con Google.");
+    }
+  });
+
+  $("form-signin-email")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!state.auth) return;
+    const fd = new FormData(e.target);
+    const email = String(fd.get("email") || "").trim();
+    const password = String(fd.get("password") || "");
+    try {
+      await signInWithEmailAndPassword(state.auth, email, password);
+      e.target.reset();
+    } catch (err) {
+      console.error(err);
+      if (
+        err.code === "auth/user-not-found" ||
+        err.code === "auth/wrong-password" ||
+        err.code === "auth/invalid-credential"
+      ) {
+        alert("Correo o contraseña incorrectos.");
+      } else {
+        alert(err.message || "No se pudo iniciar sesión.");
+      }
+    }
+  });
+
+  $("btn-sign-out")?.addEventListener("click", async () => {
+    if (!state.auth) return;
+    try {
+      await signOut(state.auth);
+      await signInAnonymously(state.auth);
+      alert("Sesión cerrada. Se ha creado una nueva sesión de invitado en este navegador.");
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "No se pudo cerrar sesión.");
+    }
+  });
 }
 
 function applySearchFilter() {
@@ -892,6 +1042,7 @@ async function bootFirebase() {
     }
     state.firebaseReady = true;
     hideBanner();
+    updateAccountUi();
   } catch (e) {
     console.error(e);
     showBanner("Error al iniciar Firebase. Revisa la configuración.", "warn");
@@ -900,7 +1051,10 @@ async function bootFirebase() {
 
   onAuthStateChanged(state.auth, async (user) => {
     state.user = user;
-    if (!user) return;
+    if (!user) {
+      updateAccountUi();
+      return;
+    }
     let profile = await ensureProfile(user.uid);
     if (!profile?.displayName) {
       const name = await promptDisplayNameModal();
@@ -919,6 +1073,7 @@ async function bootFirebase() {
     subscribeForum();
     subscribeThreads();
     if (view === "inbox" && arg) openThreadUi(arg);
+    updateAccountUi();
   });
 
   await initAuthFlow();
@@ -928,6 +1083,7 @@ function boot() {
   state.profilePrefs = loadProfilePrefsFromLocal();
   initElements();
   updateIdentityUi();
+  updateAccountUi();
   fillProfileForm();
   renderSectionGroups();
   wireForms();
