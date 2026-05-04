@@ -137,6 +137,34 @@ a:hover {
   filter: drop-shadow(0 0 5px var(--arirang-glow));
 }
 
+.top-nav__item--inbox {
+  position: relative;
+  padding-right: 0.65rem;
+}
+
+.top-nav__badge {
+  position: absolute;
+  top: -0.15rem;
+  right: -0.05rem;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--arirang);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.15rem;
+  text-align: center;
+  box-sizing: border-box;
+  border: 2px solid rgba(8, 6, 7, 0.95);
+  pointer-events: none;
+}
+
+.top-nav__badge[hidden] {
+  display: none !important;
+}
+
 .top-nav__label {
   max-width: 9.5rem;
   overflow: hidden;
@@ -623,6 +651,24 @@ a.brand:hover .brand__title {
   font-size: 1rem;
   font-weight: 600;
   color: var(--text);
+}
+
+.panel--nested-flush {
+  margin-bottom: 1rem;
+}
+
+.notify-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.notify-label input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
 }
 
 .account-actions {

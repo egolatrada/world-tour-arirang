@@ -120,7 +120,7 @@
           </a>
           <a
             href="#/bandeja"
-            class="top-nav__item"
+            class="top-nav__item top-nav__item--inbox"
             data-nav="inbox"
             data-search="mensajes bandeja inbox dm"
             title="Mensajes"
@@ -129,6 +129,7 @@
               <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke-linejoin="round" />
             </svg>
             <span class="top-nav__label">Mensajes</span>
+            <span id="inbox-badge" class="top-nav__badge" hidden aria-live="polite"></span>
           </a>
           <a
             href="#/busco"
@@ -465,6 +466,26 @@
               </div>
 
               <form id="form-profile-prefs" class="form-grid">
+                <div class="panel panel--nested panel--nested-flush" id="panel-notify-email">
+                  <h3>Notificaciones por correo</h3>
+                  <p class="legal">
+                    Marca qué avisos te gustaría recibir <strong>por email</strong>. La web solo guarda tu preferencia;
+                    hace falta un backend (por ejemplo <strong>Firebase Cloud Functions</strong> + proveedor de correo)
+                    para enviar los emails de verdad; hasta entonces no se envía nada automáticamente.
+                  </p>
+                  <label class="notify-label">
+                    <input type="checkbox" name="notifyEmailPrivate" id="profile-notify-private" />
+                    Mensajes privados (nuevo mensaje en la bandeja)
+                  </label>
+                  <label class="notify-label">
+                    <input type="checkbox" name="notifyEmailForum" id="profile-notify-forum" />
+                    Actividad en el foro (cuando exista el envío por correo)
+                  </label>
+                  <label class="notify-label">
+                    <input type="checkbox" name="notifyEmailSectorPosts" id="profile-notify-sector" />
+                    Nuevas publicaciones de intercambio / sectores (cuando exista el envío)
+                  </label>
+                </div>
                 <label>
                   Día del concierto (referencia personal)
                   <select name="concertDay" id="profile-concert-day">

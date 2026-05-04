@@ -22,6 +22,7 @@ import {
   serverTimestamp,
   doc,
   setDoc,
+  updateDoc,
   getDoc,
   where,
   deleteDoc,
@@ -55,7 +56,15 @@ const state = {
   db: null,
   user: null,
   displayName: "",
-  profilePrefs: { concertDay: "", concertSector: "" },
+  profilePrefs: {
+    concertDay: "",
+    concertSector: "",
+    notifyEmailPrivate: false,
+    notifyEmailForum: false,
+    notifyEmailSectorPosts: false,
+  },
+  /** threadId -> última vez abierta (ms); sincronizado en profiles.inboxThreadReadAt */
+  threadReadAt: {},
   firebaseReady: false,
   selectedSection: null,
   posts: [],
@@ -114,6 +123,7 @@ function initElements() {
   els.profileConcertDay = $("profile-concert-day");
   els.profileConcertSector = $("profile-concert-sector");
   els.headerUsername = $("header-username");
+  els.inboxBadge = $("inbox-badge");
 }
 
 function parseRoute() {
@@ -398,14 +408,30 @@ async function saveProfile(uid, displayName) {
 function loadProfilePrefsFromLocal() {
   try {
     const raw = localStorage.getItem(LOCAL_PROFILE_PREFS_KEY);
-    if (!raw) return { concertDay: "", concertSector: "" };
+    if (!raw)
+      return {
+        concertDay: "",
+        concertSector: "",
+        notifyEmailPrivate: false,
+        notifyEmailForum: false,
+        notifyEmailSectorPosts: false,
+      };
     const j = JSON.parse(raw);
     return {
       concertDay: typeof j.concertDay === "string" ? j.concertDay : "",
       concertSector: typeof j.concertSector === "string" ? j.concertSector : "",
+      notifyEmailPrivate: Boolean(j.notifyEmailPrivate),
+      notifyEmailForum: Boolean(j.notifyEmailForum),
+      notifyEmailSectorPosts: Boolean(j.notifyEmailSectorPosts),
     };
   } catch {
-    return { concertDay: "", concertSector: "" };
+    return {
+      concertDay: "",
+      concertSector: "",
+      notifyEmailPrivate: false,
+      notifyEmailForum: false,
+      notifyEmailSectorPosts: false,
+    };
   }
 }
 
@@ -426,19 +452,98 @@ function mergePrefsFromProfileDoc(profile) {
   state.profilePrefs = {
     concertDay: cloudDay !== "" ? cloudDay : local.concertDay,
     concertSector: cloudSec !== "" ? cloudSec : local.concertSector,
+    notifyEmailPrivate:
+      profile && typeof profile.notifyEmailPrivate === "boolean"
+        ? profile.notifyEmailPrivate
+        : local.notifyEmailPrivate,
+    notifyEmailForum:
+      profile && typeof profile.notifyEmailForum === "boolean"
+        ? profile.notifyEmailForum
+        : local.notifyEmailForum,
+    notifyEmailSectorPosts:
+      profile && typeof profile.notifyEmailSectorPosts === "boolean"
+        ? profile.notifyEmailSectorPosts
+        : local.notifyEmailSectorPosts,
   };
   saveProfilePrefsToLocal(state.profilePrefs);
+
+  state.threadReadAt = {};
+  if (profile?.inboxThreadReadAt && typeof profile.inboxThreadReadAt === "object") {
+    for (const [tid, v] of Object.entries(profile.inboxThreadReadAt)) {
+      state.threadReadAt[tid] = tsToMillis(v);
+    }
+  }
+}
+
+function tsToMillis(v) {
+  if (v == null) return 0;
+  if (typeof v === "number" && !Number.isNaN(v)) return v;
+  if (typeof v.toMillis === "function") return v.toMillis();
+  return 0;
+}
+
+function countUnreadThreads() {
+  if (!state.user || !state.threads.length) return 0;
+  let n = 0;
+  for (const t of state.threads) {
+    const updated = tsToMillis(t.updatedAt);
+    const read = state.threadReadAt[t.id] || 0;
+    if (updated > read) n += 1;
+  }
+  return n;
+}
+
+function updateInboxBadge() {
+  const el = els.inboxBadge;
+  if (!el) return;
+  if (!state.user) {
+    el.hidden = true;
+    el.textContent = "";
+    return;
+  }
+  const n = countUnreadThreads();
+  if (n <= 0) {
+    el.hidden = true;
+    el.textContent = "";
+    return;
+  }
+  el.hidden = false;
+  el.textContent = n > 99 ? "99+" : String(n);
+}
+
+async function markThreadRead(threadId) {
+  if (!threadId || !state.user) return;
+  const now = Date.now();
+  state.threadReadAt[threadId] = now;
+  updateInboxBadge();
+  if (!state.db) return;
+  try {
+    await updateDoc(doc(state.db, "profiles", state.user.uid), {
+      [`inboxThreadReadAt.${threadId}`]: now,
+    });
+  } catch (e) {
+    console.warn("markThreadRead", e);
+  }
 }
 
 async function persistProfilePrefsToCloud() {
   if (!state.db || !state.user || !state.displayName) return;
-  const { concertDay, concertSector } = state.profilePrefs;
+  const {
+    concertDay,
+    concertSector,
+    notifyEmailPrivate,
+    notifyEmailForum,
+    notifyEmailSectorPosts,
+  } = state.profilePrefs;
   await setDoc(
     doc(state.db, "profiles", state.user.uid),
     {
       displayName: state.displayName,
       concertDay: concertDay || "",
       concertSector: concertSector || "",
+      notifyEmailPrivate: Boolean(notifyEmailPrivate),
+      notifyEmailForum: Boolean(notifyEmailForum),
+      notifyEmailSectorPosts: Boolean(notifyEmailSectorPosts),
       updatedAt: serverTimestamp(),
     },
     { merge: true }
@@ -504,6 +609,12 @@ function fillProfileForm() {
   if (els.profileConcertSector) {
     els.profileConcertSector.value = state.profilePrefs.concertSector || "";
   }
+  const np = $("profile-notify-private");
+  const nf = $("profile-notify-forum");
+  const ns = $("profile-notify-sector");
+  if (np) np.checked = Boolean(state.profilePrefs.notifyEmailPrivate);
+  if (nf) nf.checked = Boolean(state.profilePrefs.notifyEmailForum);
+  if (ns) ns.checked = Boolean(state.profilePrefs.notifyEmailSectorPosts);
 }
 
 function promptDisplayNameModal() {
@@ -650,6 +761,7 @@ function subscribeThreads() {
       state.threads = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       renderInboxList();
       applySearchFilter();
+      updateInboxBadge();
     },
     (err) => {
       console.error(err);
@@ -753,6 +865,7 @@ function openThreadUi(threadId) {
       }
     }
   );
+  void markThreadRead(threadId);
 }
 
 function renderThreadMessages() {
@@ -878,6 +991,7 @@ function wireForms() {
         { merge: true }
       );
       els.formThread.reset();
+      await markThreadRead(tid);
     } catch (err) {
       console.error(err);
       alert("No se pudo enviar.");
@@ -893,7 +1007,14 @@ function wireForms() {
     const fd = new FormData(els.formProfilePrefs);
     const concertDay = String(fd.get("concertDay") || "").trim();
     const concertSector = String(fd.get("concertSector") || "").trim().slice(0, 120);
-    state.profilePrefs = { concertDay, concertSector };
+    state.profilePrefs = {
+      ...state.profilePrefs,
+      concertDay,
+      concertSector,
+      notifyEmailPrivate: fd.get("notifyEmailPrivate") === "on",
+      notifyEmailForum: fd.get("notifyEmailForum") === "on",
+      notifyEmailSectorPosts: fd.get("notifyEmailSectorPosts") === "on",
+    };
     saveProfilePrefsToLocal(state.profilePrefs);
     if (state.firebaseReady && state.user && state.db) {
       try {
@@ -906,7 +1027,7 @@ function wireForms() {
         return;
       }
     }
-    alert("Día y sector guardados.");
+    alert("Preferencias guardadas.");
   });
 
   $("btn-link-google")?.addEventListener("click", async () => {
@@ -1109,6 +1230,7 @@ async function bootFirebase() {
     }
     mergePrefsFromProfileDoc(profile);
     updateIdentityUi();
+    updateInboxBadge();
     const { view, arg } = parseRoute();
     if (view === "profile") fillProfileForm();
     subscribePosts();
