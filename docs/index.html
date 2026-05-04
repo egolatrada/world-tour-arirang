@@ -149,19 +149,6 @@
             <span class="top-nav__label">Cedo / no iré</span>
           </a>
           <a
-            href="#/info"
-            class="top-nav__item"
-            data-nav="info"
-            data-search="información info útil"
-            title="Información"
-          >
-            <svg class="top-nav__icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 10v6M12 7v1" stroke-linecap="round" />
-            </svg>
-            <span class="top-nav__label">Información</span>
-          </a>
-          <a
             href="#/perfil"
             class="top-nav__item top-nav__item--profile"
             data-nav="profile"
@@ -383,38 +370,6 @@
             </div>
           </section>
 
-          <section data-view="info" id="view-info" hidden>
-            <div class="panel">
-              <h2>Información útil</h2>
-              <ul class="legal">
-                <li>
-                  <strong>Estadio:</strong> Cívitas Metropolitano — Av. de Luis
-                  Aragonés, 4, 28022 Madrid.
-                </li>
-                <li>
-                  <strong>Fechas:</strong> 26 y 27 de junio de 2026 (comprueba tu
-                  entrada para el día exacto).
-                </li>
-                <li>
-                  <strong>Intercambio oficial:</strong> prioriza
-                  <strong>Ticketmaster</strong> o acuerdos en persona con
-                  precaución.
-                </li>
-                <li>
-                  <strong>Esta web:</strong> solo ayuda a encontrar a otras
-                  personas ARMY y hablar; no gestiona entradas.
-                </li>
-              </ul>
-            </div>
-            <div class="panel legal">
-              <p>
-                ¿Sugerencias para mejorar la página? Puedes abrir un issue en el
-                repositorio de GitHub del proyecto o contactar a Egolatrada por tus
-                canales habituales del fandom.
-              </p>
-            </div>
-          </section>
-
           <section data-view="profile" id="view-profile" hidden>
             <div class="panel">
               <h2>Tu perfil</h2>
@@ -484,7 +439,6 @@
             if (name === "bandeja" || name === "inbox") return { view: "inbox", arg: arg };
             if (name === "busco" || name === "seeking") return { view: "seeking", arg: arg };
             if (name === "cedo" || name === "giveaway") return { view: "giveaway", arg: arg };
-            if (name === "info") return { view: "info", arg: arg };
             if (name === "perfil" || name === "profile") return { view: "profile", arg: arg };
             if (name === "hilo" || name === "thread") return { view: "inbox", arg: parts[1] || null };
             return { view: "home", arg: null };

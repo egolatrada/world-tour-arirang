@@ -39,7 +39,6 @@ const VIEWS = [
   "inbox",
   "seeking",
   "giveaway",
-  "info",
   "profile",
 ];
 
@@ -121,7 +120,6 @@ function parseRoute() {
   if (name === "bandeja" || name === "inbox") return { view: "inbox", arg };
   if (name === "busco" || name === "seeking") return { view: "seeking", arg };
   if (name === "cedo" || name === "giveaway") return { view: "giveaway", arg };
-  if (name === "info") return { view: "info", arg };
   if (name === "perfil" || name === "profile") return { view: "profile", arg };
   if (name === "hilo" || name === "thread") return { view: "inbox", arg: parts[1] || null };
   return { view: "home", arg: null };
@@ -154,7 +152,6 @@ function navigate(view, extra = null) {
     inbox: "/bandeja",
     seeking: "/busco",
     giveaway: "/cedo",
-    info: "/info",
     profile: "/perfil",
   };
   let path = map[view] || "/";
